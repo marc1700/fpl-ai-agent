@@ -1,6 +1,7 @@
 {
     "manager_id": 369005,
     "bank": 0.6,
+    "free_transfers": 2,
     "players": [
         {
             "id": 109,
@@ -123,5 +124,5 @@
             "selling_price": 4.0
         }
     ],
-    "latest_update": "2026-11-16 14:41:54.593373"
+    "latest_update": "2026-11-17 12:20:43.279567"
 }

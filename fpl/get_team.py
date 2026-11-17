@@ -86,6 +86,7 @@ positions = {
 squad = {
     "manager_id": manager_id,
     "bank": my_team_data["transfers"]["bank"] / 10,
+    "free_transfers": my_team_data["transfers"]["limit"],
     "players": [],
     "latest_update": str(datetime.datetime.now())
 }
