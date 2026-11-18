@@ -49,5 +49,6 @@ def select_best_11(squad):
         if total_points > best_points:
             best_points = total_points
             best_team = starting_11
+            best_formation = (num_def, num_mid, num_fwd)
 
-    return best_team, best_points
+    return best_team, best_points, best_formation
