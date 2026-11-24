@@ -17,10 +17,10 @@ def simulate_transfer(squad_data, players_by_id, outgoing_id, incoming_id):
     if any(player["id"] == incoming_id for player in squad):
         raise ValueError("Incoming player is already in your squad")
 
-    incoming = player_by_id[incoming_id]
+    incoming = players_by_id[incoming_id]
 
     if outgoing["position"] != incoming["position"]:
-        riase ValueError("Players must have the same position")
+        raise ValueError("Players must have the same position")
 
     incoming_price = int(Decimal(str(incoming["price"])))
 
@@ -54,6 +54,6 @@ def simulate_transfer(squad_data, players_by_id, outgoing_id, incoming_id):
             squad[index] = new_player
             break
 
-    new_squa["bank"] = available_budget - incoming_price
+    new_squad["bank"] = available_budget - incoming_price
 
     return new_squad

@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from evaluate_team import select_best_11
+from simulate_transfer import simulate_transfer
 
 def main():
     fpl_dir = Path(__file__).resolve().parent # get the directory containing this script
@@ -17,7 +18,12 @@ def main():
         for player in all_players["players"]
     }
 
-    squad = squad_data["players"] # get the 15 players from the current squad
+    #squad_data = squad_data["players"] # get the 15 players from the current squad
+
+    # simulate a transfer by transfering in doku (400) for rogers (40)
+    new_squad_data = simulate_transfer(squad_data, players_by_id, 40, 400)
+
+    squad = new_squad_data["players"]
 
     for player in squad: # add predicted points per player of the squad
         player_id = player["id"] # get the players id
@@ -35,7 +41,6 @@ def main():
     # print the results
 
     print("\nBest Starting 11:\n")
-
 
     print(f"Formation: {formation}\n")
 
