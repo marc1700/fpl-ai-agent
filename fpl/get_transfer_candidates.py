@@ -1,6 +1,7 @@
 
 
 def get_transfer_candidates(squad_data, players_by_id, outgoing_id, gameweek):
+    selling_price = None
     outgoing_player = players_by_id[outgoing_id]
 
     for player in squad_data["players"]:

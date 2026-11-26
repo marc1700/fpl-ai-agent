@@ -3,14 +3,15 @@ from pathlib import Path
 
 from .evaluate_team import select_best_11
 from .simulate_transfer import simulate_transfer
+from .get_transfer_candidates import get_transfer_candidates
 
-FPL_DIR = Path(__file__).reslove().parent
+FPL_DIR = Path(__file__).resolve().parent
 
 def load_data():
     with open(FPL_DIR / "squad.json", encoding="utf-8") as file: # load current squad
         squad_data = json.load(file)
 
-    with open(FPLD_DIR / "projected_points.json", encoding="utf-8") as file:
+    with open(FPL_DIR / "projected_points.json", encoding="utf-8") as file:
         predictions = json.load(file)
 
 
@@ -25,6 +26,11 @@ def get_current_squad():
     squad_data, _ = load_data() # load latest locally saved squad
 
     return squad_data
+
+def evaluate_current_squad(gameweek):
+    squad_data, players_by_id = load_data() # load the saved squad and player projections
+
+    return evaluate_squad(squad_data, players_by_id, gameweek)
 
 def evaluate_squad(squad_data, players_by_id, gameweek):
     squad = [player.copy() for player in squad_data["players"]] # create separate player dictionaries, leaving the input unchanged
@@ -46,11 +52,11 @@ def evaluate_squad(squad_data, players_by_id, gameweek):
     return {
         "expected_points": total_points,
         "formation": formation,
-        "captain": captain["name"]
+        "captain": captain["name"],
         "starting_11": best_11,
     }
 
-def evaluate_transfer(outgoing_id, incoming_id, gameweeek):
+def evaluate_transfer(outgoing_id, incoming_id, gameweek):
     squad_data, players_by_id, = load_data() # load current squad and player database
 
     current_result = evaluate_squad( # evaluate current squad before making any transfers
@@ -80,5 +86,31 @@ def evaluate_transfer(outgoing_id, incoming_id, gameweeek):
         "new_expected_points": new_result["expected_points"],
         "improvement": improvement,
         "remaining_bank": new_squad["bank"],
-        "new_lineup": new_results,
+        "new_lineup": new_result,
     }
+
+def find_transfer_candidates(outgoing_id, gameweek, top_n=10):
+    squad_data, players_by_id = load_data() # load saved squad and player projections
+
+    candidates = get_transfer_candidates(
+        squad_data,
+        players_by_id,
+        outgoing_id,
+        gameweek,
+    )
+
+    return [
+        {
+             "id": player["id"],
+             "name": player["name"],
+             "position": player["position"],
+             "team": player["team"],
+             "price": player["price"],
+             "expected_points": next(
+                 gw["points"]
+                 for gw in player["gameweeks"]
+                 if gw["gw"] == gameweek
+             ),
+        }
+        for player in list(candidates.values())[:top_n]
+    ]
