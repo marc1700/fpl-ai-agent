@@ -95,7 +95,7 @@ def main():
 
         #try ollama response message
         message = response.message
-
+        
         messages.append(message) # save the assistant message, including any tool calls
 
         if message.tool_calls:
@@ -119,12 +119,8 @@ def main():
                 if not result_message["content"]:
                     raise RuntimeError("Function returned empty content")
 
-                # Append the tool result normally
-                messages.append({
-                    "role": "tool",
-                    "tool_name": tool_call.function.name,
-                    "content": result_message["content"],
-                })
+                if args.verbose:
+                    print(f"-> {result_message['content']}")
 
                 # Automatically store evaluated transfers in Python
                 if tool_call.function.name == "evaluate_transfer":
@@ -138,53 +134,26 @@ def main():
 
                     evaluated_transfers[transfer_key] = transfer_result
 
-                if args.verbose:
-                    print(f"-> {result_message['content']}")
+                    # Create a compact summary of this transfer
+                    transfer_result = evaluated_transfers[transfer_key]
 
-            # After ALL tool calls, compress the conversation if transfers were evaluated
-            if any(
-                tool_call.function.name == "evaluate_transfer"
-                for tool_call in message.tool_calls
-            ):
-
-                # Build a compact history of evaluated transfers
-                transfer_summary = "Transfers already evaluated:\n"
-
-                for (outgoing_id, incoming_id, gameweek), result in evaluated_transfers.items():
-                    transfer_summary += (
-                        f"- GW{gameweek}: {outgoing_id} -> {incoming_id},"
-                        f"expected points: {result['new_expected_points']:.2f}, "
-                        f"improvement: {result['improvement']:+.2f},"
-                        f"remaining bank: {result['remaining_bank']:.1f}m\n"
+                    tool_content = (
+                        f"GW{transfer_result['gameweek']}: "
+                        f"{transfer_result['outgoing_id']} -> {transfer_result['incoming_id']}, "
+                        f"new expected points: {transfer_result['new_expected_points']:.2f}, "
+                        f"improvement: {transfer_result['improvement']:+.2f}"
                     )
 
-                # Find the best transfer evaluated so far
-                best_key, best_result = max(
-                    evaluated_transfers.items(),
-                    key=lambda item: item[1]["improvement"],
-                )
+                else:
+                    # Keep full results for all other functions
+                    tool_content = result_message["content"]
 
-                # Add the best transfer to the summary
-                transfer_summary += (
-                    f"\nCurrent squad: {best_result['current_expected_points']:.2f} expected points\n"
-                    f"Best transfer so far: {best_key[0]} -> {best_key[1]}\n"
-                    f"Expected points after transfer: {best_result['new_expected_points']:.2f}\n"
-                    f"Improvement: {best_result['improvement']:+.2f}\n"
-                )
-                
-                # Replace the old conversation history
-                messages = [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": args.user_prompt},
-                    {
-                        "role": "user",
-                        "content": (
-                            transfer_summary
-                            + "\nContinue investigating transfer options. "
-                            + "Do not repeat previously evaluated transfers."
-                        ),
-                    },
-                ]
+                # Send the selected result to Gemma
+                messages.append({
+                    "role": "tool",
+                    "tool_name": tool_call.function.name,
+                    "content": tool_content,
+                })
 
         else:
             print("Final response:")
@@ -197,4 +166,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
