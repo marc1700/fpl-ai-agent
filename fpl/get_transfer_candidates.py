@@ -13,7 +13,7 @@ def get_transfer_candidates(squad_data, players_by_id, outgoing_id, gameweek):
     if selling_price is None:
         raise ValueError(f"Outgoing player with id: {outgoing_id}, is not in the current squad!")
 
-    max_affordable_price = (squad_data["bank"] + selling_price) / 10
+    max_affordable_price = squad_data["bank"] + selling_price
 
     players_with_same_position_and_affordable = {
         player_id: player
